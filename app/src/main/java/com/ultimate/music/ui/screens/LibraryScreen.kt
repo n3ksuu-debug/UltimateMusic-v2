@@ -1,74 +1,72 @@
 package com.ultimate.music.ui.screens
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ultimate.music.player.PlayerViewModel
 import com.ultimate.music.ui.theme.*
 
 @Composable
 fun LibraryScreen() {
-    val scrollState = rememberScrollState()
-    Column(Modifier.fillMaxSize().background(VoidGreen).verticalScroll(scrollState).padding(16.dp)) {
+    val vm: PlayerViewModel = hiltViewModel()
+    val tracks by vm.allTracks.collectAsStateWithLifecycle()
+    val currentTitle by vm.title.collectAsStateWithLifecycle()
+
+    Column(Modifier.fillMaxSize().background(VoidGreen).padding(16.dp)) {
         Text("Коллекция", color = CrystalWhite, fontSize = 28.sp, fontWeight = FontWeight.Black)
+        Text("Треки в памяти устройства", color = NeonTeal, fontSize = 13.sp)
         Spacer(Modifier.height(16.dp))
         
-        // Большая карточка (как Любимое в Яндексе)
-        Box(Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(24.dp)).background(Brush.linearGradient(listOf(Color(0xFF8A2BE2), Color(0xFF4B0082)))).padding(16.dp)) {
-            Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
-                Text("Любимое", color = CrystalWhite, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                Text("45 треков", color = CrystalWhite.copy(alpha = 0.7f), fontSize = 14.sp)
+        if (tracks.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Нет музыки в памяти телефона.\nСкачайте MP3 файлы.", color = CrystalWhite.copy(alpha=0.5f), fontSize = 16.sp)
             }
-        }
-        
-        Spacer(Modifier.height(24.dp))
-        Text("Умные фильтры", color = CrystalWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(8.dp))
-        
-        var bpm by remember { mutableFloatStateOf(120f) }
-        var vocal by remember { mutableFloatStateOf(0.5f) }
-        Text("BPM: ${bpm.toInt()}", color = NeonTeal, fontSize = 12.sp)
-        Slider(bpm, onValueChange = { bpm = it }, valueRange = 60f..200f, colors = SliderDefaults.colors(thumbColor = MoltenCopper, activeTrackColor = MoltenCopper))
-        Text("Вокал: ${(vocal * 100).toInt()}%", color = NeonTeal, fontSize = 12.sp)
-        Slider(vocal, onValueChange = { vocal = it }, valueRange = 0f..1f, colors = SliderDefaults.colors(thumbColor = MoltenCopper, activeTrackColor = MoltenCopper))
-        
-        Spacer(Modifier.height(24.dp))
-        Text("Ваша музыка", color = CrystalWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
-        
-        // Сетка квадратных кнопок
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            GridButton("Плейлисты", Icons.Default.QueueMusic)
-            GridButton("Скачанное", Icons.Default.Download)
-            GridButton("Альбомы", Icons.Default.Album)
-            GridButton("Артисты", Icons.Default.Mic)
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(tracks) { track ->
+                    val isPlayingThis = track.mediaMetadata.title == currentTitle
+                    TrackItem(
+                        title = track.mediaMetadata.title?.toString() ?: "Без названия",
+                        artist = track.mediaMetadata.artist?.toString() ?: "Неизвестный исполнитель",
+                        isPlaying = isPlayingThis,
+                        onClick = {
+                            vm.playTrack(track)
+                        }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-fun GridButton(label: String, icon: ImageVector) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(Modifier.size(72.dp).clip(RoundedCornerShape(16.dp)).background(SurfaceDark), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = MoltenCopper, modifier = Modifier.size(32.dp))
+fun TrackItem(title: String, artist: String, isPlaying: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+            .background(if (isPlaying) SurfaceDark else Color.Transparent)
+            .clickable { onClick() }.padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).background(MoltenCopper.copy(alpha = if(isPlaying) 1f else 0.3f))) 
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, color = if (isPlaying) MoltenCopper else CrystalWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(artist, color = NeonTeal, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        Spacer(Modifier.height(4.dp))
-        Text(label, color = CrystalWhite, fontSize = 11.sp)
     }
 }
