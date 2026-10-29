@@ -21,13 +21,16 @@ import com.ultimate.music.ui.components.AudioVisualizer
 import com.ultimate.music.ui.components.PlayButton
 import com.ultimate.music.ui.theme.*
 import kotlinx.coroutines.delay
-import kotlin.random.Random // <--- ДОБАВЛЕНА ЭТА СТРОКА
+import kotlin.random.Random
 
 @Composable
 fun HomeScreen(onOpenPlayer: () -> Unit) {
     val vm: PlayerViewModel = hiltViewModel(); val ctx = LocalContext.current
     var amp by remember { mutableFloatStateOf(0.3f) }
-    LaunchedEffect(Unit) { while (true) { amp = (0.2f..1f).random(); delay(180) } }
+    
+    // ИЗМЕНЕНО ЗДЕСЬ: используем Random.nextFloat() вместо .random()
+    LaunchedEffect(Unit) { while (true) { amp = 0.2f + Random.nextFloat() * 0.8f; delay(180) } }
+    
     Box(Modifier.fillMaxSize().background(VoidGreen)) {
         AudioVisualizer(amp, Modifier.fillMaxSize())
         Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.SpaceBetween) {
