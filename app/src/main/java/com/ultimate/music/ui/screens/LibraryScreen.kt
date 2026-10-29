@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -15,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -33,55 +33,54 @@ fun LibraryScreen() {
     val tracks by vm.allTracks.collectAsStateWithLifecycle()
     val currentTitle by vm.title.collectAsStateWithLifecycle()
 
-    Column(Modifier.fillMaxSize()) {
-        // Верхняя фиолетовая часть
-        Column(Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(PurpleBg, PurpleLight))).padding(16.dp)) {
-            Text("Коллекция", color = PureWhite, fontSize = 32.sp, fontWeight = FontWeight.Black)
-            Spacer(Modifier.height(16.dp))
-            
-            // Плитка "Любимое" с динамическим счетчиком
+    Column(Modifier.fillMaxSize().background(BlackBg)) {
+        // Верхняя часть (Профиль + Коллекция)
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF333333))) // Аватарка
+                Spacer(Modifier.width(12.dp))
+                Text("Пользователь", color = PureWhite, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(20.dp))
+            Text("Коллекция", color = PureWhite, fontSize = 28.sp, fontWeight = FontWeight.Black)
+            Spacer(Modifier.height(12.dp))
+
+            // Фиолетовая карточка (Любимое)
             Box(
-                Modifier.fillMaxWidth().height(110.dp)
-                    .shadow(8.dp, RoundedCornerShape(20.dp)) // Тень для объема
+                Modifier.fillMaxWidth().height(120.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Brush.linearGradient(listOf(Color(0xFFD8BFD8), Color(0xFF8A2BE2))))
+                    .background(Brush.linearGradient(listOf(Color(0xFF8A2BE2), Color(0xFF4B0082))))
                     .padding(16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()) {
-                    Box(Modifier.size(64.dp).clip(CircleShape).background(Color(0x33FFFFFF)), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Favorite, contentDescription = null, tint = Color(0xFF4B0082), modifier = Modifier.size(36.dp))
+                    Box(Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)).background(Color(0x33FFFFFF)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Favorite, null, tint = Color(0xFF1E0A3C), modifier = Modifier.size(36.dp))
                     }
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f)) {
                         Text("Любимое", color = PureWhite, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                        // ТУТ САМ СЧИТАЕТ
-                        Text(if (tracks.isEmpty()) "0 треков" else "${tracks.size} треков", color = PureWhite.copy(alpha = 0.9f), fontSize = 14.sp)
+                        Text("${tracks.size} треков", color = PureWhite.copy(alpha=0.8f), fontSize = 14.sp)
                     }
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = PureWhite, modifier = Modifier.size(36.dp))
+                    IconButton(onClick = { vm.playFlow() }, modifier = Modifier.background(PureWhite, CircleShape)) {
+                        Icon(Icons.Default.PlayArrow, null, tint = BlackBg)
+                    }
                 }
             }
         }
         
-        // Черная часть со списком треков
-        Column(Modifier.fillMaxSize().background(BlackBg).padding(horizontal = 16.dp, vertical = 20.dp)) {
-            Text("Треки в устройстве", color = PureWhite, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        // Список треков
+        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+            Text("Треки в устройстве", color = PureWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
-            
-            if (tracks.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Нет музыки в памяти.\nСкачайте MP3 файлы.", color = TabGray, fontSize = 16.sp)
-                }
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(tracks) { track ->
-                        val isPlayingThis = track.mediaMetadata.title == currentTitle
-                        TrackItem(
-                            title = track.mediaMetadata.title?.toString() ?: "Без названия",
-                            artist = track.mediaMetadata.artist?.toString() ?: "Неизвестный",
-                            isPlaying = isPlayingThis,
-                            onClick = { vm.playTrack(track) }
-                        )
-                    }
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(tracks) { track ->
+                    val isPlaying = track.mediaMetadata.title == currentTitle
+                    TrackItem(
+                        title = track.mediaMetadata.title?.toString() ?: "Без названия",
+                        artist = track.mediaMetadata.artist?.toString() ?: "Неизвестный",
+                        isPlaying = isPlaying,
+                        onClick = { vm.playTrack(track) }
+                    )
                 }
             }
         }
@@ -92,20 +91,16 @@ fun LibraryScreen() {
 fun TrackItem(title: String, artist: String, isPlaying: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-            .background(if (isPlaying) SurfaceDark else Color.Transparent)
-            .clickable { onClick() }.padding(12.dp),
+            .background(if (isPlaying) Color(0xFF1C1C1C) else Color.Transparent)
+            .clickable { onClick() }.padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Красивая плашка вместо скучного квадрата
-        Box(Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).background(if(isPlaying) PureWhite.copy(alpha=0.2f) else SurfaceDark), contentAlignment = Alignment.Center) {
-            if(isPlaying) {
-                Icon(Icons.Default.PlayArrow, null, tint = PureWhite, modifier = Modifier.size(24.dp))
-            }
-        }
-        Spacer(Modifier.width(16.dp))
+        Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF333333))) // Обложка (пока заглушка)
+        Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(title, color = PureWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(title, color = if (isPlaying) PureWhite else PureWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(artist, color = TabGray, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
+        Icon(Icons.Default.MoreVert, null, tint = TabGray)
     }
 }
