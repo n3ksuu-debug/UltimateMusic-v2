@@ -4,11 +4,15 @@ import android.content.Context
 import android.os.Build
 import android.provider.MediaStore
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,14 +31,20 @@ import kotlin.random.Random
 fun HomeScreen(onOpenPlayer: () -> Unit) {
     val vm: PlayerViewModel = hiltViewModel(); val ctx = LocalContext.current
     var amp by remember { mutableFloatStateOf(0.3f) }
-    
-    // ИЗМЕНЕНО ЗДЕСЬ: используем Random.nextFloat() вместо .random()
     LaunchedEffect(Unit) { while (true) { amp = 0.2f + Random.nextFloat() * 0.8f; delay(180) } }
-    
     Box(Modifier.fillMaxSize().background(VoidGreen)) {
         AudioVisualizer(amp, Modifier.fillMaxSize())
         Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.SpaceBetween) {
-            Column { Text("Микс дня", color = CrystalWhite, fontSize = 28.sp, fontWeight = FontWeight.Bold); Text("Нейро-поток", color = NeonTeal, fontSize = 13.sp) }
+            // Эффект матового стекла для заголовка
+            Column(
+                Modifier.clip(RoundedCornerShape(16.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+                    .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+                    .padding(16.dp)
+            ) {
+                Text("Микс дня", color = CrystalWhite, fontSize = 32.sp, fontWeight = FontWeight.Black, letterSpacing = (-1).sp)
+                Text("Нейро-поток • Персонально для вас", color = NeonTeal, fontSize = 13.sp, letterSpacing = 0.5.sp)
+            }
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 PlayButton(amp) {
                     val tracks = loadLocalTracks(ctx)
@@ -42,7 +52,7 @@ fun HomeScreen(onOpenPlayer: () -> Unit) {
                     onOpenPlayer()
                 }
             }
-            Text("Коснитесь — начнётся поток", color = NeonTeal.copy(alpha = 0.6f), fontSize = 12.sp)
+            Text("Коснитесь — начнётся поток", color = NeonTeal.copy(alpha = 0.7f), fontSize = 13.sp, modifier = Modifier.fillMaxWidth())
         }
     }
 }
