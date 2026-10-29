@@ -19,16 +19,16 @@ private val items = listOf(Item("home", "Главная", Icons.Default.Home), I
 @Composable
 fun AppNav() {
     val nav = rememberNavController(); val backStack by nav.currentBackStackEntryAsState(); val current = backStack?.destination?.route
-    Scaffold(containerColor = VoidGreen, bottomBar = {
+    Scaffold(containerColor = BgGreen, bottomBar = {
         if (current != "player") {
             Column {
                 MiniPlayer(onOpenPlayer = { nav.navigate("player") })
-                NavigationBar(containerColor = SurfaceDark) {
+                NavigationBar(containerColor = BlackBg) {
                     items.forEach { item ->
                         NavigationBarItem(selected = current == item.route, onClick = { nav.navigate(item.route) { popUpTo("home"); launchSingleTop = true } },
-                            icon = { Icon(item.icon, item.label, tint = if (current == item.route) MoltenCopper else NeonTeal) },
-                            label = { Text(item.label, color = if (current == item.route) MoltenCopper else NeonTeal) },
-                            colors = NavigationBarItemDefaults.colors(indicatorColor = VoidGreen)
+                            icon = { Icon(item.icon, item.label, tint = if (current == item.route) PureWhite else TabGray) },
+                            label = { Text(item.label, color = if (current == item.route) PureWhite else TabGray, fontSize = 10.sp) },
+                            colors = NavigationBarItemDefaults.colors(indicatorColor = BgGreen)
                         )
                     }
                 }
