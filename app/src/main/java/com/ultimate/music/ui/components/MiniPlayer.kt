@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -39,16 +40,16 @@ fun MiniPlayer(onOpenPlayer: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .shadow(8.dp, RoundedCornerShape(20.dp)) // Тень
+            .clip(RoundedCornerShape(20.dp))
             .background(SurfaceDark.copy(alpha = 0.95f))
             .clickable { onOpenPlayer() }
-            .padding(8.dp),
+            .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Обложка
         Box(
-            modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(VoidGreen)
+            modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(BgGreen)
         ) {
             if (albumArt != null) {
                 AsyncImage(model = albumArt, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
@@ -57,20 +58,17 @@ fun MiniPlayer(onOpenPlayer: () -> Unit) {
         
         Spacer(Modifier.width(12.dp))
         
-        // Название и артист
         Column(Modifier.weight(1f)) {
-            Text(title, color = CrystalWhite, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(artist, color = NeonTeal, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(title, color = PureWhite, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(artist, color = TabGray, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
 
-        // Кнопка Play/Pause
         IconButton(onClick = { vm.playPause() }) {
-            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, contentDescription = null, tint = MoltenCopper)
+            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, contentDescription = null, tint = PureWhite, modifier = Modifier.size(32.dp))
         }
         
-        // Кнопка Next
         IconButton(onClick = { vm.next() }) {
-            Icon(Icons.Default.SkipNext, contentDescription = null, tint = CrystalWhite)
+            Icon(Icons.Default.SkipNext, contentDescription = null, tint = PureWhite, modifier = Modifier.size(32.dp))
         }
     }
 }
