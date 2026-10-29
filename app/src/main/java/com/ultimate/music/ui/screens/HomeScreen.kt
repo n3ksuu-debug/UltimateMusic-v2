@@ -21,6 +21,8 @@ import com.ultimate.music.ui.components.AudioVisualizer
 import com.ultimate.music.ui.components.PlayButton
 import com.ultimate.music.ui.theme.*
 import kotlinx.coroutines.delay
+import kotlin.random.Random // <--- ДОБАВЛЕНА ЭТА СТРОКА
+
 @Composable
 fun HomeScreen(onOpenPlayer: () -> Unit) {
     val vm: PlayerViewModel = hiltViewModel(); val ctx = LocalContext.current
