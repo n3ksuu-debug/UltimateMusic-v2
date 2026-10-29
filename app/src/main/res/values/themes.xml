@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.UltimateMusic" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#020F00</item>
+        <item name="android:navigationBarColor">#020F00</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
