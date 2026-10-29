@@ -1,6 +1,7 @@
 package com.ultimate.music.player
 import android.content.ComponentName
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 @HiltViewModel
 class PlayerViewModel @Inject constructor(@ApplicationContext private val ctx: Context) : ViewModel() {
     private val controllerFuture: ListenableFuture<MediaController>
@@ -26,6 +28,7 @@ class PlayerViewModel @Inject constructor(@ApplicationContext private val ctx: C
     private val _artist = MutableStateFlow("Нейро-поток"); val artist = _artist.asStateFlow()
     private val _position = MutableStateFlow(0L); val position = _position.asStateFlow()
     private val _duration = MutableStateFlow(0L); val duration = _duration.asStateFlow()
+    private val _albumArt = MutableStateFlow<Uri?>(null); val albumArt = _albumArt.asStateFlow()
 
     init {
         val token = SessionToken(ctx, ComponentName(ctx, PlaybackService::class.java))
@@ -34,7 +37,11 @@ class PlayerViewModel @Inject constructor(@ApplicationContext private val ctx: C
             val c = controllerFuture.get(); controller = c
             c.addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) { _isPlaying.value = isPlaying }
-                override fun onMediaMetadataChanged(md: MediaMetadata) { _title.value = md.title?.toString() ?: "Микс дня"; _artist.value = md.artist?.toString() ?: "Нейро-поток" }
+                override fun onMediaMetadataChanged(md: MediaMetadata) {
+                    _title.value = md.title?.toString() ?: "Микс дня"
+                    _artist.value = md.artist?.toString() ?: "Нейро-поток"
+                    _albumArt.value = md.artworkUri
+                }
                 override fun onPlaybackStateChanged(state: Int) { _duration.value = c.duration.coerceAtLeast(0) }
                 override fun onMediaItemTransition(item: MediaItem?, reason: Int) { _duration.value = c.duration.coerceAtLeast(0) }
             })
