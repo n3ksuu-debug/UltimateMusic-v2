@@ -10,12 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.sp // <--- ДОБАВЛЕНО
 import androidx.navigation.compose.*
 import com.ultimate.music.ui.components.MiniPlayer
 import com.ultimate.music.ui.screens.*
 import com.ultimate.music.ui.theme.*
+
 private data class Item(val route: String, val label: String, val icon: ImageVector)
 private val items = listOf(Item("home", "Главная", Icons.Default.Home), Item("library", "Коллекция", Icons.Default.LibraryMusic), Item("settings", "Настройки", Icons.Default.Settings))
+
 @Composable
 fun AppNav() {
     val nav = rememberNavController(); val backStack by nav.currentBackStackEntryAsState(); val current = backStack?.destination?.route
