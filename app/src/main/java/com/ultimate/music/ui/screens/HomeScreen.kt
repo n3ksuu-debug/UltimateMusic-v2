@@ -28,12 +28,12 @@ fun HomeScreen(onOpenPlayer: () -> Unit) {
     var amp by remember { mutableFloatStateOf(0.3f) }
     LaunchedEffect(Unit) { while (true) { amp = 0.2f + Random.nextFloat() * 0.8f; delay(180) } }
     
-    Box(Modifier.fillMaxSize().background(VoidGreen)) {
+    Box(Modifier.fillMaxSize().background(BgGreen)) {
         AudioVisualizer(amp, Modifier.fillMaxSize())
         Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Column {
-                Text("Микс дня", color = CrystalWhite, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                Text("Нейро-поток • Персонально", color = NeonTeal, fontSize = 13.sp)
+                Text("Микс дня", color = PureWhite, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                Text("Нейро-поток • Персонально", color = PureWhite.copy(alpha = 0.8f), fontSize = 13.sp)
             }
 
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -44,24 +44,21 @@ fun HomeScreen(onOpenPlayer: () -> Unit) {
             }
 
             Column {
-                Text("Ваши потоки", color = CrystalWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                Text("Ваши потоки", color = PureWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     item {
-                        FlowCard("Мой поток", "Все треки вперемешку", Brush.linearGradient(listOf(MoltenCopper, Color(0xFF5E2A00)))) {
-                            vm.playFlow()
-                            onOpenPlayer()
+                        FlowCard("Мой поток", "Все треки", Brush.linearGradient(listOf(DarkGreen, LightGreen))) {
+                            vm.playFlow(); onOpenPlayer()
                         }
                     }
                     item {
-                        FlowCard("Для фокуса", "Случайный трек", Brush.linearGradient(listOf(NeonTeal, Color(0xFF005533)))) {
-                            vm.playFlow()
-                            onOpenPlayer()
+                        FlowCard("Для отдыха", "Случайный трек", Brush.linearGradient(listOf(DarkGreen, Color(0xFF2ECC71)))) {
+                            vm.playFlow(); onOpenPlayer()
                         }
                     }
                     item {
-                        FlowCard("Для спорта", "Энергичный бит", Brush.linearGradient(listOf(Color(0xFF6A00FF), Color(0xFF240055)))) {
-                            vm.playFlow()
-                            onOpenPlayer()
+                        FlowCard("Для спорта", "Энергичный бит", Brush.linearGradient(listOf(DarkGreen, Color(0xFF1ABC9C)))) {
+                            vm.playFlow(); onOpenPlayer()
                         }
                     }
                 }
@@ -74,8 +71,8 @@ fun HomeScreen(onOpenPlayer: () -> Unit) {
 fun FlowCard(title: String, subtitle: String, brush: Brush, onClick: () -> Unit) {
     Box(Modifier.size(140.dp, 160.dp).clip(RoundedCornerShape(16.dp)).background(brush).clickable { onClick() }.padding(12.dp)) {
         Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
-            Text(title, color = CrystalWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text(subtitle, color = CrystalWhite.copy(alpha = 0.7f), fontSize = 11.sp)
+            Text(title, color = PureWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(subtitle, color = PureWhite.copy(alpha = 0.8f), fontSize = 11.sp)
         }
     }
 }
