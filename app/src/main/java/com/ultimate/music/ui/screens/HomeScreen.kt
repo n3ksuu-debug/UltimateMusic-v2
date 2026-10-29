@@ -1,12 +1,8 @@
 package com.ultimate.music.ui.screens
-import android.content.ContentUris
-import android.content.Context
-import android.os.Build
-import android.provider.MediaStore
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -15,13 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import com.ultimate.music.player.PlayerViewModel
 import com.ultimate.music.ui.components.AudioVisualizer
 import com.ultimate.music.ui.components.PlayButton
@@ -31,7 +24,7 @@ import kotlin.random.Random
 
 @Composable
 fun HomeScreen(onOpenPlayer: () -> Unit) {
-    val vm: PlayerViewModel = hiltViewModel(); val ctx = LocalContext.current
+    val vm: PlayerViewModel = hiltViewModel()
     var amp by remember { mutableFloatStateOf(0.3f) }
     LaunchedEffect(Unit) { while (true) { amp = 0.2f + Random.nextFloat() * 0.8f; delay(180) } }
     
@@ -45,24 +38,31 @@ fun HomeScreen(onOpenPlayer: () -> Unit) {
 
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 PlayButton(amp) {
-                    val tracks = loadLocalTracks(ctx)
-                    if (tracks.isNotEmpty()) vm.setQueue(tracks)
+                    vm.playFlow()
                     onOpenPlayer()
                 }
             }
 
-            // Горизонтальные карточки (как в Яндексе)
             Column {
                 Text("Ваши потоки", color = CrystalWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     item {
-                        FlowCard("Мой поток", "Специально для вас", Brush.linearGradient(listOf(MoltenCopper, Color(0xFF5E2A00))))
+                        FlowCard("Мой поток", "Все треки вперемешку", Brush.linearGradient(listOf(MoltenCopper, Color(0xFF5E2A00)))) {
+                            vm.playFlow()
+                            onOpenPlayer()
+                        }
                     }
                     item {
-                        FlowCard("Для фокуса", "Без вокала", Brush.linearGradient(listOf(NeonTeal, Color(0xFF005533))))
+                        FlowCard("Для фокуса", "Случайный трек", Brush.linearGradient(listOf(NeonTeal, Color(0xFF005533)))) {
+                            vm.playFlow()
+                            onOpenPlayer()
+                        }
                     }
                     item {
-                        FlowCard("Для спорта", "Энергичный бит", Brush.linearGradient(listOf(Color(0xFF6A00FF), Color(0xFF240055))))
+                        FlowCard("Для спорта", "Энергичный бит", Brush.linearGradient(listOf(Color(0xFF6A00FF), Color(0xFF240055)))) {
+                            vm.playFlow()
+                            onOpenPlayer()
+                        }
                     }
                 }
             }
@@ -71,26 +71,11 @@ fun HomeScreen(onOpenPlayer: () -> Unit) {
 }
 
 @Composable
-fun FlowCard(title: String, subtitle: String, brush: Brush) {
-    Box(Modifier.size(140.dp, 160.dp).clip(RoundedCornerShape(16.dp)).background(brush).padding(12.dp)) {
+fun FlowCard(title: String, subtitle: String, brush: Brush, onClick: () -> Unit) {
+    Box(Modifier.size(140.dp, 160.dp).clip(RoundedCornerShape(16.dp)).background(brush).clickable { onClick() }.padding(12.dp)) {
         Column(verticalArrangement = Arrangement.Bottom, modifier = Modifier.fillMaxSize()) {
             Text(title, color = CrystalWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Text(subtitle, color = CrystalWhite.copy(alpha = 0.7f), fontSize = 11.sp)
         }
     }
-}
-
-private fun loadLocalTracks(ctx: Context): List<MediaItem> {
-    val collection = if (Build.VERSION.SDK_INT >= 29) MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL) else MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-    val projection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST)
-    val items = mutableListOf<MediaItem>()
-    runCatching {
-        ctx.contentResolver.query(collection, projection, null, null, null)?.use { c ->
-            val id = c.getColumnIndexOrThrow(MediaStore.Audio.Media._ID); val t = c.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE); val a = c.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            while (c.moveToNext() && items.size < 50) {
-                items += MediaItem.Builder().setUri(ContentUris.withAppendedId(collection, c.getLong(id))).setMediaMetadata(MediaMetadata.Builder().setTitle(c.getString(t)).setArtist(c.getString(a)).build()).build()
-            }
-        }
-    }
-    return items
 }
