@@ -1,6 +1,6 @@
 package com.ultimate.music.ui.components
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border // <-- ВОТ ОН, ПРОПУЩЕННЫЙ ИМПОРТ
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,8 +40,8 @@ fun MiniPlayer(onOpenPlayer: () -> Unit) {
             .fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
             .shadow(8.dp, RoundedCornerShape(20.dp))
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xCC1C1C1C)) // Матовое стекло
-            .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(20.dp)) // Тонкая рамка
+            .background(Color(0xCC1C1C1C))
+            .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(20.dp))
             .clickable { onOpenPlayer() }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
