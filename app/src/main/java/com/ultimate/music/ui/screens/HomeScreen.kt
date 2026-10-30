@@ -78,7 +78,7 @@ fun WaveCard(title: String, subtitle: String, icon: ImageVector, brush: Brush, o
             .scale(scale)
             .shadow(16.dp, RoundedCornerShape(24.dp), spotColor = LightGreen)
             .clip(RoundedCornerShape(24.dp))
-            .background(Brush.radialGradient(colors = listOf(Color(0x44FFFFFF), Color.Transparent), center = Offset(0f, 0f))) // Блик
+            .background(Brush.radialGradient(colors = listOf(Color(0x44FFFFFF), Color.Transparent), center = Offset(0f, 0f)))
             .background(brush)
             .clickable(interactionSource = interactionSource, indication = null) { onClick() }
             .padding(16.dp)
