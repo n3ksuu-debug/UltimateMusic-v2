@@ -49,7 +49,6 @@ fun CatalogScreen() {
     val allTracks by vm.allTracks.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // Голосовой поиск
     val speechLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val spokenText = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
@@ -83,7 +82,7 @@ fun CatalogScreen() {
                     val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                         putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                         putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-                        putExtra(RecognizerIntent.EXTRA_PROMPT, "Назовите трек или артиста")
+                        putExtra(RecognizerIntent.EXTRA_PROMPT, "Назовите трек")
                     }
                     runCatching { speechLauncher.launch(intent) }
                 }) {
