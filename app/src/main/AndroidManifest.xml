@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    
+    <!-- ВОТ ЭТА СТРОЧКА БЫЛА ПРОПУЩЕНА (для микрофона и визуализатора) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
     <application android:name=".App" android:allowBackup="true" android:label="Ultimate Music" android:supportsRtl="true" android:theme="@style/Theme.UltimateMusic" tools:targetApi="34">
         <activity android:name=".MainActivity" android:exported="true" android:theme="@style/Theme.UltimateMusic">
             <intent-filter>
