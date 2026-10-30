@@ -30,7 +30,8 @@ import javax.inject.Inject
 class PlayerViewModel @Inject constructor(
     @ApplicationContext private val ctx: Context,
     private val repo: SettingsRepository,
-    private val equalizerManager: EqualizerManager
+    private val equalizerManager: EqualizerManager,
+    private val visualizerManager: VisualizerManager // <-- ДОБАВЛЕНО
 ) : ViewModel() {
     private val controllerFuture: ListenableFuture<MediaController>
     private var controller: MediaController? = null
@@ -43,8 +44,12 @@ class PlayerViewModel @Inject constructor(
     private val _albumArt = MutableStateFlow<Uri?>(null); val albumArt = _albumArt.asStateFlow()
     private val _currentTrackId = MutableStateFlow<String?>(null); val currentTrackId = _currentTrackId.asStateFlow()
     
+    // Волна для визуализатора
+    val waveform = visualizerManager.waveform
+    
     private val _allTracks = MutableStateFlow<List<MediaItem>>(emptyList()); val allTracks = _allTracks.asStateFlow()
     val likedTracks = repo.likedTracks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+    val statsMinutes = repo.statsMinutes.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
     
     private var sleepTimerJob: Job? = null
 
@@ -54,22 +59,58 @@ class PlayerViewModel @Inject constructor(
         controllerFuture.addListener({
             val c = controllerFuture.get(); controller = c
             c.addListener(object : Player.Listener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) { _isPlaying.value = isPlaying }
+                override fun onIsPlayingChanged(isPlaying: Boolean) { 
+                    _isPlaying.value = isPlaying 
+                    if (isPlaying) fadeVolume(0f, 1f, 1000) // Плавное появление звука
+                }
                 override fun onMediaMetadataChanged(md: MediaMetadata) {
                     _title.value = md.title?.toString() ?: "Микс дня"
                     _artist.value = md.artist?.toString() ?: "Нейро-поток"
                     _albumArt.value = md.artworkUri
                     _currentTrackId.value = c.currentMediaItem?.mediaId
                 }
-                override fun onPlaybackStateChanged(state: Int) { _duration.value = c.duration.coerceAtLeast(0) }
+                override fun onPlaybackStateChanged(state: Int) { 
+                    _duration.value = c.duration.coerceAtLeast(0) 
+                    if (state == Player.STATE_ENDED) { /* Трек закончился */ }
+                }
                 override fun onMediaItemTransition(item: MediaItem?, reason: Int) { 
                     _duration.value = c.duration.coerceAtLeast(0)
                     _currentTrackId.value = item?.mediaId
+                    if (c.isPlaying) fadeVolume(0f, 1f, 1500) // Кроссфейд при переключении
                 }
             })
         }, MoreExecutors.directExecutor())
-        viewModelScope.launch { while (true) { controller?.let { _position.value = it.currentPosition }; delay(500) } }
+        
+        // Тикер позиции + статистика
+        viewModelScope.launch { 
+            while (true) { 
+                controller?.let { _position.value = it.currentPosition }
+                delay(500) 
+            } 
+        }
+        
+        // Считаем минуты прослушивания
+        viewModelScope.launch {
+            while (true) {
+                delay(60_000)
+                if (_isPlaying.value) repo.addMinute()
+            }
+        }
+        
         loadLocalTracks()
+    }
+    
+    // Логика плавного затухания/появления (Кроссфейд)
+    private fun fadeVolume(from: Float, to: Float, durationMs: Long) {
+        viewModelScope.launch {
+            val steps = 20
+            val stepTime = durationMs / steps
+            for (i in 0..steps) {
+                val vol = from + (to - from) * i / steps
+                controller?.volume = vol
+                delay(stepTime)
+            }
+        }
     }
 
     fun loadLocalTracks() {
@@ -95,35 +136,16 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun toggleLike(trackId: String) = viewModelScope.launch { repo.toggleLike(trackId) }
-    
     fun playTrack(track: MediaItem) { controller?.let { it.setMediaItem(track); it.prepare(); it.play() } }
-    
-    fun playFlow() {
-        if (_allTracks.value.isNotEmpty()) {
-            controller?.let { it.setMediaItems(_allTracks.value.shuffled()); it.prepare(); it.play() }
-        }
-    }
-
+    fun playFlow() { if (_allTracks.value.isNotEmpty()) { controller?.let { it.setMediaItems(_allTracks.value.shuffled()); it.prepare(); it.play() } } }
     fun playPause() { controller?.let { if (it.isPlaying) it.pause() else it.play() } }
     fun next() { controller?.seekToNextMediaItem() }
     fun prev() { controller?.seekToPreviousMediaItem() }
     fun seekTo(ms: Long) { controller?.seekTo(ms) }
-    
-    // Таймер сна
     fun setSleepTimer(minutes: Int) {
         sleepTimerJob?.cancel()
-        if (minutes > 0) {
-            sleepTimerJob = viewModelScope.launch {
-                delay(minutes * 60_000L)
-                controller?.pause()
-            }
-        }
+        if (minutes > 0) { sleepTimerJob = viewModelScope.launch { delay(minutes * 60_000L); controller?.pause() } }
     }
-    
-    // Эквалайзер (упрощенный: 0 - бас, 1 - середина, 2 - верх)
-    fun setEqBand(band: Int, level: Short) {
-        equalizerManager.setBand(band, level)
-    }
-
+    fun setEqBand(band: Int, level: Short) = equalizerManager.setBand(band, level)
     override fun onCleared() { MediaController.releaseFuture(controllerFuture); super.onCleared() }
 }
