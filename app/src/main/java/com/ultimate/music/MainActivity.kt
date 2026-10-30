@@ -11,10 +11,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import com.ultimate.music.ui.nav.AppNav
 import com.ultimate.music.ui.theme.UltimateMusicTheme
 import dagger.hilt.android.AndroidEntryPoint
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
