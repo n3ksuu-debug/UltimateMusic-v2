@@ -1,4 +1,7 @@
 package com.ultimate.music.ui.nav
+
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -25,14 +28,19 @@ private val items = listOf(
 
 @Composable
 fun AppNav() {
-    val nav = rememberNavController(); val backStack by nav.currentBackStackEntryAsState(); val current = backStack?.destination?.route
+    val nav = rememberNavController()
+    val backStack by nav.currentBackStackEntryAsState()
+    val current = backStack?.destination?.route
+
     Scaffold(containerColor = BlackBg, bottomBar = {
         if (current != "player") {
             Column {
                 MiniPlayer(onOpenPlayer = { nav.navigate("player") })
                 NavigationBar(containerColor = BlackBg) {
                     items.forEach { item ->
-                        NavigationBarItem(selected = current == item.route, onClick = { nav.navigate(item.route) { popUpTo("home"); launchSingleTop = true } },
+                        NavigationBarItem(
+                            selected = current == item.route, 
+                            onClick = { nav.navigate(item.route) { popUpTo("home"); launchSingleTop = true } },
                             icon = { Icon(item.icon, item.label, tint = if (current == item.route) PureWhite else TabGray) },
                             label = { Text(item.label, color = if (current == item.route) PureWhite else TabGray, fontSize = 10.sp) },
                             colors = NavigationBarItemDefaults.colors(indicatorColor = SurfaceDark)
@@ -42,7 +50,15 @@ fun AppNav() {
             }
         }
     }) { pad ->
-        NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
+        NavHost(
+            navController = nav,
+            startDestination = "home",
+            enterTransition = { slideInHorizontally(initialOffsetX = { 300 }, animationSpec = tween(300)) + fadeIn(tween(300)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -300 }, animationSpec = tween(300)) + fadeOut(tween(300)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -300 }, animationSpec = tween(300)) + fadeIn(tween(300)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 300 }, animationSpec = tween(300)) + fadeOut(tween(300)) },
+            modifier = Modifier.padding(pad)
+        ) {
             composable("home") { HomeScreen(onOpenPlayer = { nav.navigate("player") }) }
             composable("catalog") { CatalogScreen() }
             composable("library") { LibraryScreen() }
