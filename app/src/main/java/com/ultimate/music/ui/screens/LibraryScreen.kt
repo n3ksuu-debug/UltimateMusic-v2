@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ultimate.music.player.PlayerViewModel
+import com.ultimate.music.ui.components.TrackCover // <-- ДОБАВЛЕН ИМПОРТ ДЛЯ НОВОЙ ОБЛОЖКИ
 import com.ultimate.music.ui.theme.*
 
 @Composable
@@ -92,7 +93,9 @@ fun TrackItem(title: String, artist: String, isPlaying: Boolean, isLiked: Boolea
             .clickable { onClick() }.padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF333333))) 
+        // ВОТ ТУТ МЫ ЗАМЕНИЛИ СЕРЫЙ КВАДРАТ НА НОВУЮ ОБЛОЖКУ
+        TrackCover(title = title, size = 48.dp) 
+        
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(title, color = PureWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
