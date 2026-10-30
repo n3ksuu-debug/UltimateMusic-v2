@@ -1,5 +1,10 @@
 package com.ultimate.music.ui.screens
 
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ultimate.music.player.PlayerViewModel
 import com.ultimate.music.ui.theme.*
+import java.util.Locale
 
 data class CategoryCard(val title: String, val brush: Brush)
 val categories = listOf(
@@ -39,7 +47,16 @@ fun CatalogScreen() {
     val vm: PlayerViewModel = hiltViewModel()
     var query by remember { mutableStateOf("") }
     val allTracks by vm.allTracks.collectAsStateWithLifecycle()
-    
+    val context = LocalContext.current
+
+    // Голосовой поиск
+    val speechLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val spokenText = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+            if (!spokenText.isNullOrBlank()) query = spokenText
+        }
+    }
+
     val filteredTracks = remember(query, allTracks) {
         if (query.isBlank()) emptyList()
         else allTracks.filter { 
@@ -52,36 +69,38 @@ fun CatalogScreen() {
         Text("Поиск", color = PureWhite, fontSize = 28.sp, fontWeight = FontWeight.Black)
         Spacer(Modifier.height(12.dp))
         
-        // Строка поиска
         TextField(
-            value = query,
-            onValueChange = { query = it },
+            value = query, onValueChange = { query = it },
             placeholder = { Text("Трек, артист...", color = TabGray) },
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)),
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = SurfaceDark,
-                unfocusedContainerColor = SurfaceDark,
-                focusedTextColor = PureWhite,
-                unfocusedTextColor = PureWhite,
-                cursorColor = PureWhite
+                focusedContainerColor = SurfaceDark, unfocusedContainerColor = SurfaceDark,
+                focusedTextColor = PureWhite, unfocusedTextColor = PureWhite, cursorColor = PureWhite
             ),
             leadingIcon = { Icon(Icons.Default.Search, null, tint = TabGray) },
+            trailingIcon = {
+                IconButton(onClick = {
+                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                        putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                        putExtra(RecognizerIntent.EXTRA_PROMPT, "Назовите трек или артиста")
+                    }
+                    runCatching { speechLauncher.launch(intent) }
+                }) {
+                    Icon(Icons.Default.Mic, null, tint = PureWhite)
+                }
+            },
             singleLine = true
         )
         
         Spacer(Modifier.height(16.dp))
 
         if (query.isNotBlank()) {
-            // Результаты поиска
-            if (filteredTracks.isEmpty()) {
-                Text("Ничего не найдено", color = TabGray)
-            } else {
+            if (filteredTracks.isEmpty()) Text("Ничего не найдено", color = TabGray)
+            else {
                 LazyColumn {
                     items(filteredTracks) { track ->
-                        Row(
-                            Modifier.fillMaxWidth().clickable { vm.playTrack(track) }.padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Row(Modifier.fillMaxWidth().clickable { vm.playTrack(track) }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).background(SurfaceDark))
                             Spacer(Modifier.width(12.dp))
                             Column {
@@ -93,17 +112,9 @@ fun CatalogScreen() {
                 }
             }
         } else {
-            // Сетка категорий (как было)
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            LazyVerticalGrid(columns = GridCells.Fixed(2), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(categories) { category ->
-                    Box(
-                        Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(16.dp))
-                            .background(category.brush).clickable { vm.playFlow() }.padding(16.dp)
-                    ) {
+                    Box(Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(16.dp)).background(category.brush).clickable { vm.playFlow() }.padding(16.dp)) {
                         Text(category.title, color = PureWhite, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
