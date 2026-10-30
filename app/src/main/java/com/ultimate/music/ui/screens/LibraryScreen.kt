@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ultimate.music.player.PlayerViewModel
-import com.ultimate.music.ui.components.TrackCover // <-- ДОБАВЛЕН ИМПОРТ ДЛЯ НОВОЙ ОБЛОЖКИ
+import com.ultimate.music.ui.components.TrackCover
 import com.ultimate.music.ui.theme.*
 
 @Composable
@@ -41,7 +41,6 @@ fun LibraryScreen() {
             Text("Коллекция", color = PureWhite, fontSize = 28.sp, fontWeight = FontWeight.Black)
             Spacer(Modifier.height(12.dp))
 
-            // Карточка Любимое
             Box(
                 Modifier.fillMaxWidth().height(120.dp)
                     .clip(RoundedCornerShape(20.dp))
@@ -93,7 +92,6 @@ fun TrackItem(title: String, artist: String, isPlaying: Boolean, isLiked: Boolea
             .clickable { onClick() }.padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // ВОТ ТУТ МЫ ЗАМЕНИЛИ СЕРЫЙ КВАДРАТ НА НОВУЮ ОБЛОЖКУ
         TrackCover(title = title, size = 48.dp) 
         
         Spacer(Modifier.width(12.dp))
