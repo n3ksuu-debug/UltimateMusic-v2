@@ -29,7 +29,6 @@ fun TrackCover(title: String, size: Dp = 48.dp, cornerRadius: Dp = 12.dp) {
         listOf(Color(0xFFF7971E), Color(0xFFFFD200)),
         listOf(Color(0xFF8E2DE2), Color(0xFF4A00E0))
     )
-    // Берем цвет в зависимости от хэша названия (каждый трек имеет свой цвет)
     val picked = colors[title.hashCode().absoluteValue % colors.size]
     
     Box(
