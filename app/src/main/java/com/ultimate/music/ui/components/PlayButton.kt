@@ -22,22 +22,20 @@ fun PlayButton(amplitude: Float, onClick: () -> Unit) {
     val haptic = LocalHapticFeedback.current
     val pulse = rememberInfiniteTransition(label = "p").animateFloat(1f, 1.05f, infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "pv")
     Box(contentAlignment = Alignment.Center) {
-        // Кольца вокруг кнопки
         repeat(3) { i -> 
             Box(Modifier.size((180 + i * 40 + (amplitude * 40)).dp).border(BorderStroke(1.dp, PureWhite.copy(alpha = 0.15f - i * 0.05f)), CircleShape)) 
         }
-        // Сама кнопка с красивой тенью
         Button(
             onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onClick() }, 
             modifier = Modifier
                 .size(150.dp)
                 .scale(pulse.value)
-                .shadow(25.dp, CircleShape, spotColor = LightGreen), // Свечение
+                .shadow(25.dp, CircleShape, spotColor = LightGreen),
             shape = CircleShape, 
             colors = ButtonDefaults.buttonColors(containerColor = PureWhite), 
             contentPadding = PaddingValues(0.dp)
         ) {
-            Icon(Icons.Default.PlayArrow, null, tint = BgGreen, modifier = Modifier.size(80.dp))
+            Icon(Icons.Default.PlayArrow, null, tint = BgGreenTop, modifier = Modifier.size(80.dp))
         }
     }
 }
