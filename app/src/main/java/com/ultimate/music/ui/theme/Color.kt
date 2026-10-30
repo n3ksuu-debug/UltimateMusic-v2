@@ -14,7 +14,6 @@ val PureWhite = Color(0xFFFFFFFF)
 val TabGray = Color(0xFFAAAAAA)
 val SurfaceDark = Color(0xFF1C1C1C)
 
-// Старые названия для совместимости
 val VoidGreen = BgGreenBottom
 val NeonTeal = LightGreen
 val MoltenCopper = PureWhite
