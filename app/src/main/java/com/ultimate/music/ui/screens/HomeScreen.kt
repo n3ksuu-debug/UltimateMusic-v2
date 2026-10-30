@@ -24,44 +24,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ultimate.music.player.PlayerViewModel
 import com.ultimate.music.ui.components.AudioVisualizer
 import com.ultimate.music.ui.components.PlayButton
 import com.ultimate.music.ui.theme.*
-import kotlinx.coroutines.delay
-import kotlin.random.Random
 
 @Composable
 fun HomeScreen(onOpenPlayer: () -> Unit) {
     val vm: PlayerViewModel = hiltViewModel()
-    var amp by remember { mutableFloatStateOf(0.3f) }
-    LaunchedEffect(Unit) { while (true) { amp = 0.2f + Random.nextFloat() * 0.8f; delay(180) } }
+    val waveform by vm.waveform.collectAsStateWithLifecycle() // <-- ПОЛУЧАЕМ РЕАЛЬНУЮ ВОЛНУ
     
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF0F7A4A), Color(0xFF052E1C))))) {
-        AudioVisualizer(amp, Modifier.fillMaxSize())
+        AudioVisualizer(waveform, Modifier.fillMaxSize()) // <-- ПЕРЕДАЕМ В КОМПОНЕНТ
         Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Text("Моя волна", color = PureWhite, fontSize = 32.sp, fontWeight = FontWeight.Black)
                 Text("Нейро-поток • Персонально", color = PureWhite.copy(alpha = 0.7f), fontSize = 14.sp)
             }
-
-            // Центральная кнопка и кнопка Настроить
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                PlayButton(amp) {
-                    vm.playFlow()
-                    onOpenPlayer()
-                }
+                PlayButton(waveform.maxOrNull() ?: 0f) { vm.playFlow(); onOpenPlayer() }
                 Spacer(Modifier.height(16.dp))
-                Button(
-                    onClick = { /* Тут можно открыть настройки */ },
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0x33FFFFFF))
-                ) {
+                Button(onClick = { }, shape = RoundedCornerShape(24.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0x33FFFFFF))) {
                     Text("Настроить", color = PureWhite, fontWeight = FontWeight.Bold)
                 }
             }
-
-            // Карточки (Любимое, Мой поток, Для отдыха)
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 item { WaveCard("Любимое", Icons.Default.Favorite, Brush.linearGradient(listOf(Color(0xFF9B59B6), Color(0xFF5E2A84)))) { vm.playFlow(); onOpenPlayer() } }
                 item { WaveCard("Мой поток", Icons.Default.PlayArrow, Brush.linearGradient(listOf(Color(0xFF1E9A62), Color(0xFF094D2F)))) { vm.playFlow(); onOpenPlayer() } }
@@ -76,13 +63,7 @@ fun WaveCard(title: String, icon: ImageVector, brush: Brush, onClick: () -> Unit
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(if (isPressed) 0.9f else 1f, label = "scale")
-
-    Box(
-        Modifier.size(140.dp, 150.dp).scale(scale).clip(RoundedCornerShape(20.dp))
-            .background(brush)
-            .clickable(interactionSource = interactionSource, indication = null) { onClick() }
-            .padding(16.dp)
-    ) {
+    Box(Modifier.size(140.dp, 150.dp).scale(scale).clip(RoundedCornerShape(20.dp)).background(brush).clickable(interactionSource = interactionSource, indication = null) { onClick() }.padding(16.dp)) {
         Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
             Icon(icon, null, tint = PureWhite, modifier = Modifier.size(36.dp))
             Text(title, color = PureWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold)
